@@ -25,50 +25,99 @@ namespace WebApi.Controllers
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
-        { 
-            return Ok(await db.Get(id));
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest("Title should not be empty");
+            }
+            try
+            {
+                return Ok(await db.Get(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("No element was found with this ID");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Newsletter newsletter)
         {
             if (newsletter == null)
-                return BadRequest();
-
-            if (newsletter.Title == string.Empty)
             {
-                ModelState.AddModelError("Title", "The title shouldn't be empty");
+                return BadRequest();
             }
 
-            await db.Insert(newsletter);
+            if (string.IsNullOrEmpty(newsletter.Title))
+            {
+                return BadRequest("Title should not be empty");
+            }
 
-            return Created("Created", true);
-               
+            if (string.IsNullOrEmpty(newsletter.HtmlBody))
+            {
+                return BadRequest("HtmlBody should not be empty");
+            }
+
+            try
+            {
+                await db.Insert(newsletter);
+
+                return Created("Created", true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "The element could not be created." });
+            }
         }
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] Newsletter newsletter)
         {
             if (newsletter == null)
-                return BadRequest();
-
-            if (newsletter.Title == string.Empty)
             {
-                ModelState.AddModelError("Title", "The title shouldn't be empty");
+                return BadRequest();
             }
 
-            await db.Update(newsletter);
+            if (string.IsNullOrEmpty(newsletter.Title))
+            {
+                return BadRequest("Title should not be empty");
+            }
 
-            return Ok(true);
+            if (string.IsNullOrEmpty(newsletter.HtmlBody))
+            {
+                return BadRequest("HtmlBody should not be empty");
+            }
+
+            try
+            {
+                await db.Update(newsletter);
+
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest("The item could not be updated.");
+            }
+            
 
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            await db.Delete(id);
+            try
+            {
+                await db.Delete(id);
 
-            return Ok(true);
+                return Ok(true);
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("The element could not be eliminated.");
+            }
+            
         }
     }
 }
